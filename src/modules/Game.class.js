@@ -20,25 +20,154 @@ class Game {
    * If passed, the board will be initialized with the provided
    * initial state.
    */
-  constructor(initialState) {
-    // eslint-disable-next-line no-console
-    console.log(initialState);
+
+  constructor(
+    initialState = [
+      [0, 0, 0, 0],
+      [0, 0, 0, 0],
+      [0, 0, 0, 0],
+      [0, 0, 0, 0],
+    ],
+  ) {
+    this.initialState = initialState;
+    this.board = this.copyBoard(initialState);
+    this.score = 0;
+    this.status = 'idle';
   }
 
-  moveLeft() {}
-  moveRight() {}
-  moveUp() {}
-  moveDown() {}
+  moveLeft() {
+    return this.moveTiles((row) => row);
+  }
+
+  moveRight() {
+    return this.moveTiles((row) => row.slice().reverse());
+  }
+
+  moveUp() {
+    return this.moveTiles((_, colIndex) => {
+      return this.board.map((row) => row[colIndex]);
+    });
+  }
+
+  moveDown() {
+    return this.moveTiles((_, colIndex) => {
+      return this.board.map((row) => row[colIndex]).reverse();
+    });
+  }
+
+  moveTiles(getRow) {
+    let moved = false;
+    const newBoard = this.board.map((row, rowIndex) => {
+      let processedRow = getRow(row, rowIndex);
+
+      processedRow = this.mergeTiles(processedRow);
+      processedRow = this.slideTiles(processedRow);
+
+      if (getRow(row, rowIndex).length !== 4) {
+        processedRow = this.slideTiles(processedRow, 4);
+      }
+
+      if (
+        JSON.stringify(getRow(row, rowIndex)) !== JSON.stringify(processedRow)
+      ) {
+        moved = true;
+      }
+
+      const originalRow = getRow(row, rowIndex);
+
+      if (originalRow.length !== 4) {
+        const result = [];
+
+        for (let i = 0; i < 4; i++) {
+          if (processedRow[i] !== undefined) {
+            result[i] = processedRow[i];
+          } else {
+            result[i] = 0;
+          }
+        }
+        processedRow = result;
+      }
+
+      return processedRow;
+    });
+
+    if (moved) {
+      this.board = newBoard.map((row, rowIndex) => {
+        const originalRow = getRow(this.board[rowIndex], rowIndex);
+
+        if (originalRow.length !== 4) {
+          return this.board[rowIndex].map(
+            (_, colIndex) => newBoard[rowIndex][colIndex],
+          );
+        }
+
+        return row;
+      });
+      this.generateRandomTile();
+      this.updateStatus();
+    }
+
+    return moved;
+  }
+
+  mergeTiles(row) {
+    const newRow = [];
+    let i = 0;
+
+    while (i < row.length) {
+      if (row[i] !== 0 && row[i] === row[i + 1]) {
+        const mergedValue = row[i] * 2;
+
+        this.score += mergedValue;
+        newRow.push(mergedValue);
+        i += 2;
+      } else {
+        newRow.push(row[i]);
+        i++;
+      }
+    }
+
+    return newRow;
+  }
+
+  slideTiles(row, count = row.length) {
+    return row
+      .filter((tile) => tile !== 0)
+      .concat(Array(count - row.filter((tile) => tile !== 0).length).fill(0));
+  }
+
+  generateRandomTile() {
+    const emptyCells = [];
+
+    this.board.forEach((row, rowIndex) => {
+      row.forEach((cell, colIndex) => {
+        if (cell === 0) {
+          emptyCells.push({ rowIndex, colIndex });
+        }
+      });
+    });
+
+    if (emptyCells.length > 0) {
+      const randomIndex = Math.floor(Math.random() * emptyCells.length);
+      const { rowIndex, colIndex } = emptyCells[randomIndex];
+
+      this.board[rowIndex][colIndex] = Math.random() < 0.9 ? 2 : 4;
+    }
+  }
 
   /**
    * @returns {number}
    */
-  getScore() {}
+  getScore() {
+    return this.score;
+  }
 
   /**
    * @returns {number[][]}
    */
-  getState() {}
+  getState() {
+    return this.copyBoard(this.board);
+  }
 
   /**
    * Returns the current game status.
@@ -50,19 +179,71 @@ class Game {
    * `win` - the game is won;
    * `lose` - the game is lost
    */
-  getStatus() {}
+  getStatus() {
+    return this.status;
+  }
 
   /**
    * Starts the game.
    */
-  start() {}
+  start() {
+    this.status = 'playing';
+    this.generateRandomTile();
+    this.generateRandomTile();
+  }
 
   /**
    * Resets the game.
    */
-  restart() {}
+  restart() {
+    this.board = this.copyBoard(this.initialState);
+    this.score = 0;
+    this.status = 'idle';
+  }
 
-  // Add your own methods here
+  updateStatus() {
+    if (this.isGameWon()) {
+      this.status = 'win';
+    } else if (this.isGameOver()) {
+      this.status = 'lose';
+    }
+  }
+
+  isGameWon() {
+    return this.board.some((row) => row.includes(2048));
+  }
+
+  isGameOver() {
+    return !this.board.some((row, rowIndex) => {
+      return row.some((cell, colIndex) => {
+        if (cell === 0) {
+          return true;
+        }
+
+        if (rowIndex > 0 && cell === this.board[rowIndex - 1][colIndex]) {
+          return true;
+        }
+
+        if (rowIndex < 3 && cell === this.board[rowIndex + 1][colIndex]) {
+          return true;
+        }
+
+        if (colIndex > 0 && cell === row[colIndex - 1]) {
+          return true;
+        }
+
+        if (colIndex < 3 && cell === row[colIndex + 1]) {
+          return true;
+        }
+
+        return false;
+      });
+    });
+  }
+
+  copyBoard(board) {
+    return board.map((row) => [...row]);
+  }
 }
 
 module.exports = Game;
