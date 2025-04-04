@@ -25,6 +25,10 @@ class Game {
 
   constructor(
     boardCells,
+    scoreElement,
+    startMessageElement,
+    winMessageElement,
+    loseMessageElement,
     initialState = [
       [0, 0, 0, 0],
       [0, 0, 0, 0],
@@ -37,6 +41,10 @@ class Game {
     this.score = 0;
     this.status = 'idle';
     this.boardCells = boardCells;
+    this.scoreElement = scoreElement;
+    this.startMessageElement = startMessageElement;
+    this.winMessageElement = winMessageElement;
+    this.loseMessageElement = loseMessageElement;
   }
 
   moveLeft() {
@@ -93,6 +101,7 @@ class Game {
       this.updateStatus();
     }
     this.renderBoard();
+    this.updateScoreDisplay();
 
     return newBoard;
   }
@@ -186,6 +195,7 @@ class Game {
     this.status = 'playing';
     this.generateRandomTile();
     this.generateRandomTile();
+    this.hideMessage(this.startMessageElement);
   }
 
   /**
@@ -195,13 +205,16 @@ class Game {
     this.board = this.copyBoard(this.initialState);
     this.score = 0;
     this.status = 'idle';
+    this.showMessage(this.startMessageElement);
   }
 
   updateStatus() {
     if (this.isGameWon()) {
       this.status = 'win';
+      this.showMessage(this.winMessageElement);
     } else if (this.isGameOver()) {
       this.status = 'lose';
+      this.showMessage(this.loseMessageElement);
     }
   }
 
@@ -278,6 +291,24 @@ class Game {
         });
       }
     });
+  }
+
+  updateScoreDisplay() {
+    if (this.scoreElement) {
+      this.scoreElement.textContent = this.score;
+    }
+  }
+
+  hideMessage(element) {
+    if (element && !element.classList.contains('hidden')) {
+      element.classList.add('hidden');
+    }
+  }
+
+  showMessage(element) {
+    if (element && element.classList.contains('hidden')) {
+      element.classList.remove('hidden');
+    }
   }
 }
 
