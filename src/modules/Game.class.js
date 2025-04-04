@@ -9,6 +9,8 @@ class Game {
   /**
    * Creates a new game instance.
    *
+   * @param boardCells
+   * DOM elements representing the game board cells.
    * @param {number[][]} initialState
    * The initial state of the board.
    * @default
@@ -22,6 +24,7 @@ class Game {
    */
 
   constructor(
+    boardCells,
     initialState = [
       [0, 0, 0, 0],
       [0, 0, 0, 0],
@@ -33,6 +36,7 @@ class Game {
     this.board = this.copyBoard(initialState);
     this.score = 0;
     this.status = 'idle';
+    this.boardCells = boardCells;
   }
 
   moveLeft() {
@@ -40,74 +44,57 @@ class Game {
   }
 
   moveRight() {
-    return this.moveTiles((row) => row.slice().reverse());
+    return this.moveTiles((row) => {
+      const copyRow = row.slice();
+
+      return this.reverseRow(copyRow);
+    });
   }
 
   moveUp() {
-    return this.moveTiles((_, colIndex) => {
-      return this.board.map((row) => row[colIndex]);
-    });
+    this.transposeBoard();
+    this.moveLeft();
+    this.transposeBoard();
+    this.renderBoard();
+
+    return this.board;
   }
 
   moveDown() {
-    return this.moveTiles((_, colIndex) => {
-      return this.board.map((row) => row[colIndex]).reverse();
-    });
+    this.transposeBoard();
+    this.moveRight();
+    this.transposeBoard();
+    this.renderBoard();
+
+    return this.board;
   }
 
   moveTiles(getRow) {
     let moved = false;
     const newBoard = this.board.map((row, rowIndex) => {
-      let processedRow = getRow(row, rowIndex);
+      let currentRow = getRow(row, rowIndex);
 
-      processedRow = this.mergeTiles(processedRow);
-      processedRow = this.slideTiles(processedRow);
-
-      if (getRow(row, rowIndex).length !== 4) {
-        processedRow = this.slideTiles(processedRow, 4);
-      }
+      currentRow = this.mergeTiles(currentRow);
+      currentRow = this.normalizeRowLength(currentRow);
+      currentRow = this.slideTiles(currentRow);
 
       if (
-        JSON.stringify(getRow(row, rowIndex)) !== JSON.stringify(processedRow)
+        JSON.stringify(getRow(row, rowIndex)) !== JSON.stringify(currentRow)
       ) {
         moved = true;
       }
 
-      const originalRow = getRow(row, rowIndex);
-
-      if (originalRow.length !== 4) {
-        const result = [];
-
-        for (let i = 0; i < 4; i++) {
-          if (processedRow[i] !== undefined) {
-            result[i] = processedRow[i];
-          } else {
-            result[i] = 0;
-          }
-        }
-        processedRow = result;
-      }
-
-      return processedRow;
+      return getRow([...currentRow], rowIndex);
     });
 
     if (moved) {
-      this.board = newBoard.map((row, rowIndex) => {
-        const originalRow = getRow(this.board[rowIndex], rowIndex);
-
-        if (originalRow.length !== 4) {
-          return this.board[rowIndex].map(
-            (_, colIndex) => newBoard[rowIndex][colIndex],
-          );
-        }
-
-        return row;
-      });
+      this.board = newBoard;
       this.generateRandomTile();
       this.updateStatus();
     }
+    this.renderBoard();
 
-    return moved;
+    return newBoard;
   }
 
   mergeTiles(row) {
@@ -130,10 +117,19 @@ class Game {
     return newRow;
   }
 
-  slideTiles(row, count = row.length) {
-    return row
-      .filter((tile) => tile !== 0)
-      .concat(Array(count - row.filter((tile) => tile !== 0).length).fill(0));
+  normalizeRowLength(row, targetLength = 4) {
+    while (row.length < targetLength) {
+      row.push(0);
+    }
+
+    return row;
+  }
+
+  slideTiles(row, targetLength = row.length) {
+    const nonZeroTiles = row.filter((tile) => tile !== 0);
+    const numberOfZeroTilesNeeded = targetLength - nonZeroTiles.length;
+
+    return [...nonZeroTiles, ...Array(numberOfZeroTilesNeeded).fill(0)];
   }
 
   generateRandomTile() {
@@ -243,6 +239,45 @@ class Game {
 
   copyBoard(board) {
     return board.map((row) => [...row]);
+  }
+
+  reverseRow(row) {
+    const nonZero = row.filter((cell) => cell !== 0);
+    const zeros = Array(row.length - nonZero.length).fill(0);
+
+    return [...zeros, ...nonZero];
+  }
+
+  transposeBoard() {
+    const rows = this.board.length;
+    const cols = this.board[0].length;
+    const newBoard = [];
+
+    for (let j = 0; j < cols; j++) {
+      newBoard[j] = [];
+
+      for (let i = 0; i < rows; i++) {
+        newBoard[j][i] = this.board[i][j];
+      }
+    }
+    this.board = newBoard;
+  }
+
+  renderBoard() {
+    this.board.forEach((row, rowIndex) => {
+      const rowElement = this.boardCells[rowIndex];
+
+      if (rowElement && rowElement.classList.contains('field-row')) {
+        row.forEach((cellValue, cellIndex) => {
+          const cellElement = rowElement.children[cellIndex];
+
+          if (cellElement && cellElement.classList.contains('field-cell')) {
+            cellElement.textContent = cellValue !== 0 ? cellValue : '';
+            cellElement.dataset.value = cellValue;
+          }
+        });
+      }
+    });
   }
 }
 
