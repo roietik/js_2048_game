@@ -11,6 +11,10 @@ class Game {
    *
    * @param boardCells
    * DOM elements representing the game board cells.
+   * @param scoreElement
+   * @param startMessageElement
+   * @param winMessageElement
+   * @param loseMessageElement
    * @param {number[][]} initialState
    * The initial state of the board.
    * @default
