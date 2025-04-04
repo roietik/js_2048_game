@@ -55,7 +55,7 @@ class Game {
     return this.moveTiles((row) => {
       const copyRow = row.slice();
 
-      return this.reverseRow(copyRow);
+      return copyRow.reverse();
     });
   }
 
