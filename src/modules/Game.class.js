@@ -63,7 +63,6 @@ class Game {
     this.transposeBoard();
     this.moveLeft();
     this.transposeBoard();
-    this.renderBoard();
 
     return this.board;
   }
@@ -72,7 +71,6 @@ class Game {
     this.transposeBoard();
     this.moveRight();
     this.transposeBoard();
-    this.renderBoard();
 
     return this.board;
   }
