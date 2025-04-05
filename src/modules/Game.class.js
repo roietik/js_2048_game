@@ -49,6 +49,7 @@ class Game {
     this.startMessageElement = startMessageElement;
     this.winMessageElement = winMessageElement;
     this.loseMessageElement = loseMessageElement;
+    this.firstMove = true;
   }
 
   moveLeft() {
@@ -63,20 +64,22 @@ class Game {
     });
   }
 
-  moveUp() {
-    this.transposeBoard();
-    this.moveLeft();
-    this.transposeBoard();
-
-    return this.board;
-  }
+    moveUp() {
+      this.transposeBoard();
+      const moved = this.moveLeft();
+      this.transposeBoard();
+      this.board = this.copyBoard(this.board);
+      this.renderBoard();
+      return moved;
+    }
 
   moveDown() {
     this.transposeBoard();
-    this.moveRight();
+    const moved = this.moveRight();
     this.transposeBoard();
-
-    return this.board;
+    this.board = this.copyBoard(this.board);
+    this.renderBoard();
+    return moved;
   }
 
   moveTiles(getRow) {
@@ -105,7 +108,7 @@ class Game {
     this.renderBoard();
     this.updateScoreDisplay();
 
-    return newBoard;
+    return moved;
   }
 
   mergeTiles(row) {
@@ -197,7 +200,8 @@ class Game {
     this.status = 'playing';
     this.generateRandomTile();
     this.generateRandomTile();
-    this.hideMessage(this.startMessageElement);
+    this.hideElement(this.startMessageElement);
+    this.renderBoard();
   }
 
   /**
@@ -207,16 +211,18 @@ class Game {
     this.board = this.copyBoard(this.initialState);
     this.score = 0;
     this.status = 'idle';
-    this.showMessage(this.startMessageElement);
+    this.showElement(this.startMessageElement);
+    this.hideElement(this.loseMessageElement);
+    this.renderBoard();
   }
 
   updateStatus() {
     if (this.isGameWon()) {
       this.status = 'win';
-      this.showMessage(this.winMessageElement);
+      this.showElement(this.winMessageElement);
     } else if (this.isGameOver()) {
       this.status = 'lose';
-      this.showMessage(this.loseMessageElement);
+      this.showElement(this.loseMessageElement);
     }
   }
 
@@ -254,13 +260,6 @@ class Game {
 
   copyBoard(board) {
     return board.map((row) => [...row]);
-  }
-
-  reverseRow(row) {
-    const nonZero = row.filter((cell) => cell !== 0);
-    const zeros = Array(row.length - nonZero.length).fill(0);
-
-    return [...zeros, ...nonZero];
   }
 
   transposeBoard() {
@@ -301,13 +300,13 @@ class Game {
     }
   }
 
-  hideMessage(element) {
+  hideElement(element) {
     if (element && !element.classList.contains('hidden')) {
       element.classList.add('hidden');
     }
   }
 
-  showMessage(element) {
+  showElement(element) {
     if (element && element.classList.contains('hidden')) {
       element.classList.remove('hidden');
     }

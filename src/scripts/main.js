@@ -18,31 +18,38 @@ const game = new Game(
   loseMessageElement,
 );
 
+function hideStartButton(moved) {
+  if (!moved) {
+    return;
+  }
+  game.hideElement(startGameBtn);
+  game.showElement(resetGameBtn);
+}
+
 startGameBtn.addEventListener('click', () => {
-  game.restart();
   game.start();
-  game.renderBoard();
+  game.hideElement(resetGameBtn);
 });
 
 resetGameBtn.addEventListener('click', () => {
   game.restart();
-  // game.start();
-  game.renderBoard();
+  game.showElement(startGameBtn);
+  game.hideElement(resetGameBtn);
 });
 
 document.addEventListener('keydown', ($event) => {
   switch ($event.key) {
     case 'ArrowLeft':
-      game.moveLeft();
+      hideStartButton(game.moveLeft());
       break;
     case 'ArrowRight':
-      game.moveRight();
+      hideStartButton(game.moveRight());
       break;
     case 'ArrowUp':
-      game.moveUp();
+      hideStartButton(game.moveUp());
       break;
     case 'ArrowDown':
-      game.moveDown();
+      hideStartButton(game.moveDown());
       break;
     default:
       break;
