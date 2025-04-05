@@ -29,12 +29,14 @@ function hideStartButton(moved) {
 startGameBtn.addEventListener('click', () => {
   game.start();
   game.hideElement(resetGameBtn);
+  game.renderBoard();
 });
 
 resetGameBtn.addEventListener('click', () => {
   game.restart();
   game.showElement(startGameBtn);
   game.hideElement(resetGameBtn);
+  game.renderBoard();
 });
 
 document.addEventListener('keydown', ($event) => {
@@ -54,4 +56,5 @@ document.addEventListener('keydown', ($event) => {
     default:
       break;
   }
+  game.renderBoard();
 });

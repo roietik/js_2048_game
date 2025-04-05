@@ -70,8 +70,6 @@ class Game {
     const moved = this.moveLeft();
 
     this.transposeBoard();
-    this.board = this.copyBoard(this.board);
-    this.renderBoard();
 
     return moved;
   }
@@ -82,8 +80,6 @@ class Game {
     const moved = this.moveRight();
 
     this.transposeBoard();
-    this.board = this.copyBoard(this.board);
-    this.renderBoard();
 
     return moved;
   }
@@ -111,7 +107,6 @@ class Game {
       this.generateRandomTile();
       this.updateStatus();
     }
-    this.renderBoard();
     this.updateScoreDisplay();
 
     return moved;
@@ -207,7 +202,6 @@ class Game {
     this.generateRandomTile();
     this.generateRandomTile();
     this.hideElement(this.startMessageElement);
-    this.renderBoard();
   }
 
   /**
@@ -219,7 +213,6 @@ class Game {
     this.status = 'idle';
     this.showElement(this.startMessageElement);
     this.hideElement(this.loseMessageElement);
-    this.renderBoard();
   }
 
   updateStatus() {
