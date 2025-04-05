@@ -49,7 +49,7 @@ class Game {
     this.startMessageElement = startMessageElement;
     this.winMessageElement = winMessageElement;
     this.loseMessageElement = loseMessageElement;
-    this.firstMove = true;
+    this.BOARD_SIZE = 4;
   }
 
   moveLeft() {
@@ -262,15 +262,13 @@ class Game {
   }
 
   transposeBoard() {
-    const rows = this.board.length;
-    const cols = this.board[0].length;
     const newBoard = [];
 
-    for (let j = 0; j < cols; j++) {
-      newBoard[j] = [];
+    for (let colIndex = 0; colIndex < this.BOARD_SIZE; colIndex++) {
+      newBoard[colIndex] = [];
 
-      for (let i = 0; i < rows; i++) {
-        newBoard[j][i] = this.board[i][j];
+      for (let rowIndex = 0; rowIndex < this.BOARD_SIZE; rowIndex++) {
+        newBoard[colIndex][rowIndex] = this.board[rowIndex][colIndex];
       }
     }
     this.board = newBoard;
@@ -280,35 +278,38 @@ class Game {
     this.board.forEach((row, rowIndex) => {
       const rowElement = this.boardCells[rowIndex];
 
-      if (rowElement && rowElement.classList.contains('field-row')) {
-        row.forEach((cellValue, cellIndex) => {
-          const cellElement = rowElement.children[cellIndex];
-
-          if (cellElement && cellElement.classList.contains('field-cell')) {
-            cellElement.textContent = cellValue !== 0 ? cellValue : '';
-            cellElement.dataset.value = cellValue;
-          }
-        });
+      if (!rowElement || !rowElement.classList.contains('field-row')) {
+        return;
       }
+
+      row.forEach((cellValue, cellIndex) => {
+        const cellElement = rowElement.children[cellIndex];
+
+        cellElement.textContent = cellValue !== 0 ? cellValue : '';
+        cellElement.dataset.value = cellValue;
+      });
     });
   }
 
   updateScoreDisplay() {
-    if (this.scoreElement) {
-      this.scoreElement.textContent = this.score;
+    if (!this.scoreElement) {
+      return;
     }
+    this.scoreElement.textContent = this.score;
   }
 
   hideElement(element) {
-    if (element && !element.classList.contains('hidden')) {
-      element.classList.add('hidden');
+    if (!element || element.classList.contains('hidden')) {
+      return;
     }
+    element.classList.add('hidden');
   }
 
   showElement(element) {
-    if (element && element.classList.contains('hidden')) {
-      element.classList.remove('hidden');
+    if (!element || !element.classList.contains('hidden')) {
+      return;
     }
+    element.classList.remove('hidden');
   }
 }
 
