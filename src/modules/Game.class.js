@@ -64,21 +64,27 @@ class Game {
     });
   }
 
-    moveUp() {
-      this.transposeBoard();
-      const moved = this.moveLeft();
-      this.transposeBoard();
-      this.board = this.copyBoard(this.board);
-      this.renderBoard();
-      return moved;
-    }
-
-  moveDown() {
+  moveUp() {
     this.transposeBoard();
-    const moved = this.moveRight();
+
+    const moved = this.moveLeft();
+
     this.transposeBoard();
     this.board = this.copyBoard(this.board);
     this.renderBoard();
+
+    return moved;
+  }
+
+  moveDown() {
+    this.transposeBoard();
+
+    const moved = this.moveRight();
+
+    this.transposeBoard();
+    this.board = this.copyBoard(this.board);
+    this.renderBoard();
+
     return moved;
   }
 
